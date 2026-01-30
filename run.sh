@@ -71,6 +71,51 @@ if [ $# -eq 0 ]; then
     echo "  ./run.sh pip install -r requirements.txt"
     echo "  ./run.sh black app/                # Format código"
     echo ""
+    echo -e "${GREEN}Comandos especiais:${NC}"
+    echo "  ./run.sh clean                     # Limpa pasta temp/"
+    echo "  ./run.sh clean-all                 # Limpa temp/ e .pytest_cache/"
+    echo ""
+    exit 0
+fi
+
+# Verificar comandos especiais
+if [ "$1" = "clean" ]; then
+    echo -e "${YELLOW}🧹 Limpando pasta temp/...${NC}"
+    if [ -d "$API_DIR/temp" ]; then
+        rm -rf "$API_DIR/temp"
+        mkdir -p "$API_DIR/temp"
+        echo -e "${GREEN}✅ Pasta temp/ limpa com sucesso${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Pasta temp/ não existe${NC}"
+    fi
+    exit 0
+fi
+
+if [ "$1" = "clean-all" ]; then
+    echo -e "${YELLOW}🧹 Limpando temp/, .pytest_cache/ e __pycache__...${NC}"
+    
+    # Limpar temp
+    if [ -d "$API_DIR/temp" ]; then
+        rm -rf "$API_DIR/temp"
+        mkdir -p "$API_DIR/temp"
+        echo -e "${GREEN}✅ temp/ limpo${NC}"
+    fi
+    
+    # Limpar pytest cache
+    if [ -d "$API_DIR/.pytest_cache" ]; then
+        rm -rf "$API_DIR/.pytest_cache"
+        echo -e "${GREEN}✅ .pytest_cache/ limpo${NC}"
+    fi
+    
+    # Limpar pycache
+    find "$API_DIR" -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null
+    echo -e "${GREEN}✅ __pycache__/ limpo${NC}"
+    
+    # Limpar arquivos .pyc
+    find "$API_DIR" -name "*.pyc" -delete 2>/dev/null
+    echo -e "${GREEN}✅ .pyc removidos${NC}"
+    
+    echo -e "${GREEN}✅ Limpeza completa concluída${NC}"
     exit 0
 fi
 
