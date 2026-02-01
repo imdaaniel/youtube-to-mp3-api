@@ -1,6 +1,7 @@
 import yt_dlp
 import os
 import time
+import subprocess
 
 def download_audio(video_url: str, output_path: str = 'downloads') -> None:
     """
@@ -45,3 +46,49 @@ def download_audio(video_url: str, output_path: str = 'downloads') -> None:
         print(f"Erro ao baixar: {str(e)}")
         import traceback
         traceback.print_exc()
+
+def stream_video(video_url: str, format_id: str, video_id: str):
+    """
+    Faz stream direto de um vídeo do YouTube sem armazenar em disco.
+    
+    Args:
+        video_url: URL do vídeo do YouTube
+        format_id: ID do formato desejado
+        video_id: ID único da sessão
+    
+    Yields:
+        Chunks de 64KB do arquivo de vídeo
+    
+    Raises:
+        Exception: Se o processo de download falhar
+    """
+    chunk_size = 1024 * 64  # 64KB
+    
+    try:
+        print(f"[{video_id}] Iniciando stream de: {video_url}")
+        
+        cmd = ['yt-dlp', '-f', format_id, '-o', '-', video_url]
+        
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        
+        while True:
+            chunk = process.stdout.read(chunk_size)
+            if not chunk:
+                break
+            yield chunk
+        
+        # Verificar se o processo terminou com sucesso
+        returncode = process.wait()
+        if returncode != 0:
+            stderr = process.stderr.read().decode('utf-8', errors='ignore')
+            raise Exception(f"yt-dlp falhou com código {returncode}: {stderr}")
+        
+        print(f"[{video_id}] Stream concluído com sucesso")
+        
+    except Exception as e:
+        print(f"[{video_id}] Erro durante stream: {str(e)}")
+        raise
