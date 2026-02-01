@@ -74,12 +74,29 @@ async def download_stream(request: DownloadRequestWithFormat):
     try:
         print(f"[{video_id}] Iniciando streaming de {url} com formato {format_id}")
         
+        # Buscar metadados para obter extensão do formato
+        metadata = await extract_video_metadata(url)
+        ext = "mp4"  # Padrão
+        video_title = "video"
+        
+        # Procurar o formato selecionado para obter a extensão
+        for fmt in metadata.get('formats', []):
+            if fmt.get('format_id') == format_id:
+                ext = fmt.get('ext', 'mp4')
+                break
+        
+        # Usar título do vídeo como nome (com sanitização)
+        if metadata.get('title'):
+            video_title = metadata['title'][:50].replace(' ', '_')  # Primeiros 50 caracteres
+        
+        filename = f"{video_title}.{ext}"
+        
         # Retornar stream
         return StreamingResponse(
             stream_video(url, format_id, video_id),
             media_type="application/octet-stream",
             headers={
-                "Content-Disposition": "attachment; filename=video",
+                "Content-Disposition": f"attachment; filename={filename}",
                 "Accept-Ranges": "bytes"
             }
         )
