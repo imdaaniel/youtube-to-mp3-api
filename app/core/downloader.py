@@ -26,6 +26,8 @@ def download_audio(video_url: str, output_path: str = 'downloads') -> None:
             'preferredquality': '0',
         }],
         'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
+        'restrictfilenames': True,  # Sanitiza caracteres especiais no filename
+        'encoding': 'utf-8',         # Usa UTF-8 para encoding
         'extractor_args': {
             'youtube': {
                 'player_client': ['ios', 'android'],  # Tentar clientes mobile

@@ -1,0 +1,148 @@
+# API Backend Context - yt-to-mp3
+
+## Objetivo
+Fornecer uma API FastAPI que gerencia download e conversão de vídeos YouTube para MP3.
+
+## Tecnologia
+- **Framework**: FastAPI (Python)
+- **Testing**: pytest
+- **Validação**: Pydantic
+- **Download de vídeos**: yt-dlp
+
+## Estrutura
+
+```
+api/
+├── main.py                 # Entrada da aplicação, inicializa FastAPI
+├── requirements.txt        # Dependências Python
+├── pytest.ini             # Configuração do pytest
+├── run.sh                 # Script para executar
+├── conftest.py            # Configuração de testes
+├── app/
+│   ├── __init__.py
+│   ├── config.py          # Variáveis de configuração (URLs, caminhos, etc)
+│   ├── core/
+│   │   └── downloader.py  # Lógica central: download de YouTube → MP3
+│   ├── routes/
+│   │   └── download.py    # Endpoints HTTP POST/GET para downloads
+│   ├── schemas/
+│   │   └── download.py    # Modelos Pydantic (validação de inputs)
+│   ├── services/
+│   │   ├── youtube.py     # Serviço de gerenciamento de downloads
+│   │   └── cleanup.py     # Limpeza automática de arquivos antigos
+│   └── utils/
+│       ├── id_generator.py # Gera IDs únicos (timestamps + hash)
+│       └── validators.py   # Funções de validação (URLs, etc)
+├── tests/
+│   ├── unit/              # Testes de funções isoladas
+│   │   ├── test_id_generator.py
+│   │   ├── test_validators.py
+│   │   └── test_cleanup.py
+│   └── integration/
+│       └── test_endpoints.py # Testes dos endpoints HTTP
+└── temp/                   # Pasta temporária (arquivos MP3 gerados)
+```
+
+## Fluxo de um Download
+
+1. **Request chega em `/routes/download.py`**
+   - Valida URL com `schemas/download.py` (Pydantic)
+   - Se inválida, retorna erro 400
+
+2. **Serviço YouTube ativa `/services/youtube.py`**
+   - Usa `yt-dlp` para extrair informações do vídeo
+   - Valida que é um vídeo válido
+
+3. **Download inicia em `core/downloader.py`**
+   - Baixa o vídeo
+   - Converte para MP3
+   - Salva em `/temp/{id_único}/`
+
+4. **ID gerado por `utils/id_generator.py`**
+   - Formato: timestamp + hash aleatório
+   - Exemplo: `1769906871700_9cada43a`
+
+5. **Response retorna**
+   - URL para download ou status do processo
+
+6. **Limpeza automática `services/cleanup.py`**
+   - Remove arquivos antigos (> X horas)
+   - Executa periodicamente ou em demand
+
+## Padrões de Código
+
+### Type Hints
+```python
+from typing import Optional, List
+from pydantic import BaseModel
+
+def download_video(url: str, output_id: str) -> dict:
+    """Sempre use type hints"""
+    pass
+```
+
+### Validação Pydantic
+```python
+class DownloadRequest(BaseModel):
+    url: str
+    format: str = "mp3"  # default value
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "url": "https://www.youtube.com/watch?v=...",
+                "format": "mp3"
+            }
+        }
+```
+
+### Testes
+- Testes unitários em `tests/unit/`
+- Testes de integração em `tests/integration/`
+- Execute com: `pytest` ou `pytest -v`
+
+## Endpoints Principais
+
+Veja `app/routes/download.py` para a lista completa de endpoints.
+
+Exemplos:
+- `POST /download` - Inicia download de URL
+- `GET /status/{id}` - Status do download
+- `GET /file/{id}` - Baixar arquivo MP3
+
+## Configurações
+
+Variáveis definidas em `app/config.py`:
+- Caminho para pasta temporária
+- Timeout de downloads
+- Tempo de limpeza automática
+- URLs externas
+
+## Como Executar
+
+```bash
+# Instalar dependências
+pip install -r requirements.txt
+
+# Rodar API
+python main.py
+
+# Ou usar script
+bash run.sh
+
+# Executar testes
+pytest
+pytest -v          # Verbose
+pytest --cov       # Com cobertura
+```
+
+## Documentação
+- `/docs/DEVELOPMENT_INSTRUCTIONS.md` - Setup detalhado
+- `/docs/ERRORS.md` - Erros conhecidos
+- `/docs/sprints/SPRINT-1-SERVE-API.md` - Sprint atual
+
+## Notas Importantes
+- Arquivos MP3 são armazenados em `/api/temp/`
+- Cada download recebe um ID único para rastreamento
+- Use sempre Pydantic para validação de entrada
+- Implemente type hints em todas as funções
