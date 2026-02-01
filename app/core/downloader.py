@@ -17,10 +17,13 @@ def download_audio(video_url: str, output_path: str = 'downloads') -> None:
     # Configurar opções do yt-dlp com strategies diferentes
     ydl_opts = {
         'format': 'bestaudio/best',
+        'extract_audio': True,       # tells yt-dlp to extract the audio
+        'audio_format': 'mp3',       # converts the audio to mp3 format
+        'audio_quality': '0',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
-            'preferredquality': '192',
+            'preferredquality': '0',
         }],
         'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
         'extractor_args': {
