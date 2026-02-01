@@ -118,22 +118,40 @@ Variáveis definidas em `app/config.py`:
 - Tempo de limpeza automática
 - URLs externas
 
+## 🚨 REGRA CRÍTICA DE EXECUÇÃO
+
+**SEMPRE usar `./run.sh <comando>` para executar qualquer comando neste projeto!**
+
+```bash
+❌ ERRADO:
+pytest -v
+python main.py
+pip install package
+
+✅ CORRETO:
+./run.sh pytest -v
+./run.sh python main.py
+./run.sh pip install package
+```
+
+Isso garante o ambiente correto, consistência e facilita reprodução de problemas.
+
 ## Como Executar
 
 ```bash
 # Instalar dependências
-pip install -r requirements.txt
+./run.sh pip install -r requirements.txt
 
 # Rodar API
-python main.py
-
-# Ou usar script
-bash run.sh
+./run.sh python main.py
 
 # Executar testes
-pytest
-pytest -v          # Verbose
-pytest --cov       # Com cobertura
+./run.sh pytest
+./run.sh pytest -v          # Verbose
+./run.sh pytest --cov       # Com cobertura
+
+# Compilar/validar Python
+./run.sh python -m py_compile app/schemas/download.py
 ```
 
 ## Documentação
