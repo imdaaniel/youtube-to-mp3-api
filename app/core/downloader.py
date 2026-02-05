@@ -15,25 +15,29 @@ def download_audio(video_url: str, output_path: str = 'downloads') -> None:
     if not os.path.exists(output_path):
         os.makedirs(output_path)
     
-    # Configurar opções do yt-dlp com strategies diferentes
+    # Configurar opções do yt-dlp com estratégias otimizadas
     ydl_opts = {
         'format': 'bestaudio/best',
-        'extract_audio': True,       # tells yt-dlp to extract the audio
-        'audio_format': 'mp3',       # converts the audio to mp3 format
-        'audio_quality': '0',
+        'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
+        'restrictfilenames': True,  # Sanitiza caracteres especiais no filename
+        'noplaylist': True,          # Baixar apenas o vídeo, não playlist
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
-            'preferredquality': '0',
+            'preferredquality': '192',  # 192kbps - boa qualidade e compatibilidade
+        }, {
+            'key': 'FFmpegMetadata',     # Adiciona metadados ao MP3
+            'add_metadata': True,
         }],
-        'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
-        'restrictfilenames': True,  # Sanitiza caracteres especiais no filename
-        'encoding': 'utf-8',         # Usa UTF-8 para encoding
-        'extractor_args': {
-            'youtube': {
-                'player_client': ['ios', 'android'],  # Tentar clientes mobile
-            }
-        },
+        'postprocessor_args': [
+            '-ar', '44100',              # Sample rate padrão (44.1kHz)
+            '-ac', '2',                  # Estéreo (2 canais)
+            '-b:a', '192k',              # Bitrate constante 192kbps
+        ],
+        'prefer_ffmpeg': True,           # Preferir FFmpeg sobre avconv
+        'keepvideo': False,              # Deletar vídeo original após conversão
+        'writethumbnail': False,         # Não baixar thumbnail
+        'embedthumbnail': False,         # Não embutir thumbnail no MP3
     }
     
     try:
