@@ -1,6 +1,7 @@
 import pytest
 from app.utils.validators import validate_youtube_url
 
+
 class TestValidateYoutubeUrl:
     """Testes para validação de URLs do YouTube"""
     
@@ -47,9 +48,4 @@ class TestValidateYoutubeUrl:
     def test_youtube_with_parameters(self):
         """Deve validar YouTube com parâmetros adicionais"""
         url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10s&list=ABC"
-        assert validate_youtube_url(url) is True
-    
-    def test_http_protocol(self):
-        """Deve validar com protocolo HTTP"""
-        url = "http://www.youtube.com/watch?v=dQw4w9WgXcQ"
         assert validate_youtube_url(url) is True

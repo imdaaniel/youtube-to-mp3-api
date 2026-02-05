@@ -5,6 +5,7 @@ import time
 from app.services.cleanup import cleanup_old_files, cleanup_all_temp_files
 from app.config import settings
 
+
 class TestCleanupOldFiles:
     """Testes para limpeza de arquivos antigos"""
     
@@ -81,6 +82,7 @@ class TestCleanupOldFiles:
         finally:
             settings.TEMP_DIR = original_temp
 
+
 class TestCleanupAllTempFiles:
     """Testes para limpeza total de arquivos temporários"""
     
@@ -120,3 +122,4 @@ class TestCleanupAllTempFiles:
             assert settings.TEMP_DIR.is_dir(), "Temp deveria ser um diretório"
         finally:
             settings.TEMP_DIR = original_temp
+
