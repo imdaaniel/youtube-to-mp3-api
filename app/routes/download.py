@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
+from urllib.parse import quote
 
 from app.schemas.download import DownloadRequest, DownloadRequestWithFormat, VideoMetadata
 from app.utils.validators import validate_youtube_url
-from app.utils.id_generator import generate_video_id
+from app.utils.helpers import sanitize_filename, generate_video_id
 from app.services.youtube import download_youtube_audio, extract_video_metadata
 from app.core.downloader import stream_video
 
@@ -85,19 +86,20 @@ async def download_stream(request: DownloadRequestWithFormat):
                 ext = fmt.get('ext', 'mp4')
                 break
         
-        # Usar título do vídeo como nome (com sanitização)
+        # Usar título do vídeo normalizado como nome do arquivo
         if metadata.get('title'):
-            video_title = metadata['title'][:50].replace(' ', '_')  # Primeiros 50 caracteres
+            video_title = sanitize_filename(metadata['title'])
         
         filename = f"{video_title}.{ext}"
+        filename_encoded = quote(filename)
         
         # Retornar stream
         return StreamingResponse(
             stream_video(url, format_id, video_id),
             media_type="application/octet-stream",
             headers={
-                "Content-Disposition": f"attachment; filename={filename}",
-                "Accept-Ranges": "bytes"
+                "Content-Disposition": f"attachment; filename*=UTF-8''{filename_encoded}",
+                "Accept-Ranges": "bytes",
             }
         )
         
@@ -139,12 +141,13 @@ async def download(request: DownloadRequest):
         
         # Retornar arquivo com stream
         # Nota: O arquivo será deletado automaticamente pelo scheduler
+        filename_encoded = quote(mp3_file.name)
         return FileResponse(
             path=mp3_file,
             filename=mp3_file.name,
             media_type="audio/mpeg",
             headers={
-                "Content-Disposition": f"attachment; filename={mp3_file.name}"
+                "Content-Disposition": f"attachment; filename*=UTF-8''{filename_encoded}"
             }
         )
         
